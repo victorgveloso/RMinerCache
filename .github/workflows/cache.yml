@@ -3,12 +3,12 @@ name: ASTDiff Bot
 on:
   issue_comment:
     types: [created]
-permissions: write-all
 jobs:
   diff:
     runs-on: ubuntu-latest
     permissions:
       issues: write
+      contents: write
 
     steps:
       # Step 0: Check for @diff trigger and get the URL command
@@ -88,17 +88,19 @@ jobs:
       - name: Fetch the generated artifact
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         run: |
-          mkdir -p cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
-          cp ${{ github.workspace }}/exportedFromDocker/diff_results.zip cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/diff_results.zip
-          cd cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
+          echo "${{ github.workspace }}/cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/"
+          mkdir -p ${{ github.workspace }}/cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
+          cp ${{ github.workspace }}/exportedFromDocker/diff_results.zip ${{ github.workspace }}/cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/diff_results.zip
+          cd ${{ github.workspace }}/cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
           unzip diff_results.zip
           rm diff_results.zip
+          ls "${{ github.workspace }}/cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/"
 
       - name: Commit detected changes
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         uses: EndBug/add-and-commit@v9
         with:
-          cwd: /cache
+          cwd: ${{ github.workspace }}/cache
           # add: '.' # Optional. Default is '.'
           author_name: "Victor Guerra Veloso"
           author_email: "victorgvbh@gmail.com"

@@ -57,7 +57,7 @@ jobs:
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         run: |
           mkdir -p cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
-          wget -O cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/ast-diff.zip ${{ steps.run_rm_exporter.outputs.artifact_url }}
+          wget --no-http-keep-alive -O cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/ast-diff.zip ${{ steps.run_rm_exporter.outputs.artifact_url }}
           cd cache//${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
           unzip ast-diff.zip
           rm ast-diff.zip

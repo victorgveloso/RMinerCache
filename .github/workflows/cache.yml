@@ -84,27 +84,21 @@ jobs:
           ref: gh-pages # The cache branch to checkout
           path: cache   # The target directory to checkout to
 
-      - name: Fetch the generated artifact
+      - name: Fetch the generated artifact and update the cache branch
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}
+        env:
+            GITHUB_TOKEN: ${{ secrets.OAUTHTOKEN }}
         run: |
           mkdir -p cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
           cp ${{ github.workspace }}/exportedFromDocker/diff_results.zip cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/diff_results.zip
-          cd cache//${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
+          cd cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
           unzip diff_results.zip
           rm diff_results.zip
-
-      - name: Commit detected changes
-        if: ${{ steps.trigger.outputs.repo_match == 'true' }}
-        uses: EndBug/add-and-commit@v9
-        with:
-          cwd: /cache
-          # add: '.' # Optional. Default is '.'
-          author_name: "Victor Guerra Veloso"
-          author_email: "victorgvbh@gmail.com"
-          default_author: user_info
-          new_branch: gh-pages
-          message: "Github actions updated anime season data"
-          push: "origin gh-pages --set-upstream --force"
+          git config user.name "Victor Guerra Veloso"
+          git config user.email "victorgvbh@gmail.com"
+          git add .
+          git commit -m "Github actions updated anime season data"
+          git push origin gh-pages --set-upstream --force
 
       - name: Reply
         if: ${{ steps.trigger.outputs.triggered == 'true' }}

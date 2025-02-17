@@ -11,7 +11,6 @@ jobs:
       contents: write
 
     steps:
-      # Step 0: Check for @diff trigger and get the URL command
       - name: Check for @diff trigger
         id: trigger
         uses: actions/github-script@v6
@@ -68,14 +67,6 @@ jobs:
           name: diff_results
           path: ${{ github.workspace }}/exportedFromDocker/diff_results.zip
 
-      - name: Set artifact URL output
-        run: echo "artifact_url=${{ steps.upload_artifact.outputs.artifact-url }}" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Set artifact URL output
-        run: echo "::set-output name=artifact_url::${{ steps.upload_artifact.outputs.artifact-url }}"
-        shell: bash
-
       - name: Checkout cached (gh-pages) branch into subdirectory
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         uses: actions/checkout@v4 # Clone cache branch
@@ -83,7 +74,7 @@ jobs:
           # repository: 'tsantalis/RefactoringMiner' # Optional. Default is the current repository
           token: '${{ secrets.OAUTHTOKEN }}'
           ref: gh-pages # The cache branch to checkout
-          path: cache   # The target directory to checkout to
+          path: ${{ github.workspace }}/cache   # The target directory to checkout to
 
       - name: Fetch the generated artifact
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}

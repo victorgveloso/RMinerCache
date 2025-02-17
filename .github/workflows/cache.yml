@@ -104,7 +104,7 @@ jobs:
           default_author: user_info
           new_branch: gh-pages
           message: "Github actions updated anime season data"
-          push: "origin main --set-upstream --force"
+          push: "origin gh-pages --set-upstream --force"
 
       - name: Reply
         if: ${{ steps.trigger.outputs.triggered == 'true' }}

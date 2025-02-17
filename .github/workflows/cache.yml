@@ -85,6 +85,9 @@ jobs:
           cd cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/
           unzip diff_results.zip
           rm diff_results.zip
+          rm -rf json
+          mv web/* .
+          rmdir web
           ls
 
       - name: Commit detected changes

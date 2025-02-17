@@ -27,10 +27,11 @@ jobs:
               core.setOutput('url', url); 
               const repo_match = url.match(owner_name_regex);
               if (repo_match) {
-                core.setOutput('owner', match[1].trim()); 
-                core.setOutput('name', match[2].trim());
+                core.setOutput('repo_match', 'true');
+                core.setOutput('owner', repo_match[1].trim()); 
+                core.setOutput('name', repo_match[2].trim());
               } else {
-                core.setOutput('
+                core.setOutput('repo_match', 'false');
               }
             } else {
               core.setOutput('triggered', 'false');
@@ -45,6 +46,7 @@ jobs:
           URL: "${{ steps.trigger.outputs.url }}"
 
       - name: Checkout cached (gh-pages) branch into subdirectory
+        if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         uses: actions/checkout@v4 # Clone cache branch
         with:
           # repository: 'tsantalis/RefactoringMiner' # Optional. Default is the current repository
@@ -52,6 +54,7 @@ jobs:
           path: cache   # The target directory to checkout to
 
       - name: Fetch the generated artifact
+        if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         run: |
           mkdir -p cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
           wget -O cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/ast-diff.zip ${{ steps.run_rm_exporter.outputs.artifact_url }}
@@ -60,6 +63,7 @@ jobs:
           rm ast-diff.zip
 
       - name: Commit detected changes
+        if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         uses: EndBug/add-and-commit@v9
         with:
           cwd: /cache

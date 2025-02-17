@@ -88,13 +88,13 @@ jobs:
       - name: Fetch the generated artifact
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         run: |
-          echo "${{ github.workspace }}/cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/"
-          mkdir -p ${{ github.workspace }}/cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
-          cp ${{ github.workspace }}/exportedFromDocker/diff_results.zip ${{ github.workspace }}/cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/diff_results.zip
-          cd ${{ github.workspace }}/cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
+          echo "${{ github.workspace }}/cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/"
+          mkdir -p ${{ github.workspace }}/cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/
+          cp ${{ github.workspace }}/exportedFromDocker/diff_results.zip ${{ github.workspace }}/cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/diff_results.zip
+          cd ${{ github.workspace }}/cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/
           unzip diff_results.zip
           rm diff_results.zip
-          ls "${{ github.workspace }}/cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/"
+          ls "${{ github.workspace }}/cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/"
 
       - name: Commit detected changes
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}

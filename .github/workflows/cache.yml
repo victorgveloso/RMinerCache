@@ -74,24 +74,24 @@ jobs:
           # repository: 'tsantalis/RefactoringMiner' # Optional. Default is the current repository
           token: '${{ secrets.OAUTHTOKEN }}'
           ref: gh-pages # The cache branch to checkout
-          path: ${{ github.workspace }}/cache   # The target directory to checkout to
+          path: cache   # The target directory to checkout to
 
       - name: Fetch the generated artifact
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         run: |
-          echo "${{ github.workspace }}/cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/"
-          mkdir -p ${{ github.workspace }}/cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/
-          cp ${{ github.workspace }}/exportedFromDocker/diff_results.zip ${{ github.workspace }}/cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/diff_results.zip
-          cd ${{ github.workspace }}/cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/
+          echo "cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/"
+          mkdir -p cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/
+          cp exportedFromDocker/diff_results.zip cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/diff_results.zip
+          cd cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/
           unzip diff_results.zip
           rm diff_results.zip
-          ls "${{ github.workspace }}/cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/"
+          ls
 
       - name: Commit detected changes
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         uses: EndBug/add-and-commit@v9
         with:
-          cwd: ${{ github.workspace }}/cache
+          cwd: cache
           # add: '.' # Optional. Default is '.'
           author_name: "Victor Guerra Veloso"
           author_email: "victorgvbh@gmail.com"
@@ -106,7 +106,7 @@ jobs:
         with:
           script: |
             const url = '${{ steps.trigger.outputs.url }}';
-            const artifact_url = '${{ steps.run_rm_exporter.outputs.artifact_url }}'; // Add artifact_url output
+            const artifact_url = '${{ steps.upload_artifact.outputs.artifact-url }}'; // Add artifact_url output
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

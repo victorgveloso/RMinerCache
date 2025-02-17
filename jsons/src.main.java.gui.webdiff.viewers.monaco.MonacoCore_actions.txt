@@ -1,0 +1,17 @@
+===
+update-node
+---
+SimpleName: monacoInvocation [2684,2700]
+replace monacoInvocation by code===
+delete-tree
+---
+VariableDeclarationStatement [2750,2822]
+    SimpleType [2750,2756]
+        SimpleName: String [2750,2756]
+    VariableDeclarationFragment [2757,2821]
+        SimpleName: code [2757,2761]
+        InfixExpression [2764,2821]
+            StringLiteral: "window.onload = function() { " [2764,2795]
+            INFIX_EXPRESSION_OPERATOR: + [2796,2797]
+            SimpleName: monacoInvocation [2798,2814]
+            StringLiteral: "};" [2817,2821]

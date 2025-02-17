@@ -37,13 +37,44 @@ jobs:
               core.setOutput('triggered', 'false');
             }
 
-      # Step 1: Run the exporter
-      - name: Running the RM action exporter
-        uses: pouryafard75/refactoringminer-astdiff-exporter@v0.4
-        id: run_rm_exporter
+      - name: Pull RefactoringMiner Docker image
+        run: docker pull tsantalis/refactoringminer:latest
+        shell: bash
+
+      - name: Run RefactoringMiner to generate diff
+        run: |
+          mkdir -p ${{ github.workspace }}/exportedFromDocker
+          docker run \
+            --env OAuthToken="${{ secrets.OAUTHTOKEN }}" \
+            -v ${{ github.workspace }}/exportedFromDocker:/diff/exported \
+            --entrypoint "" \
+            tsantalis/refactoringminer:latest /bin/sh -c "\
+              refactoringminer diff --url \"${{ steps.trigger.outputs.url }}\" -e && \
+              unzip /opt/refactoringminer/lib/RefactoringMiner-DockerBuild.jar -d /tmp/refactoringminer &&
+              mkdir -p /diff/exported/web && \
+              cp -r /tmp/refactoringminer/web /diff/exported/web/resources"
+        shell: bash
+
+      - name: Create zip artifact of diff results
+        run: |
+          cd ${{ github.workspace }}/exportedFromDocker
+          zip -r diff_results.zip .
+        shell: bash
+
+      - name: Upload diff results as artifact
+        id: upload_artifact
+        uses: actions/upload-artifact@v4
         with:
-          OAuthToken: ${{ secrets.OAUTHTOKEN }}
-          URL: "${{ steps.trigger.outputs.url }}"
+          name: diff_results
+          path: ${{ github.workspace }}/exportedFromDocker/diff_results.zip
+
+      - name: Set artifact URL output
+        run: echo "artifact_url=${{ steps.upload_artifact.outputs.artifact-url }}" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Set artifact URL output
+        run: echo "::set-output name=artifact_url::${{ steps.upload_artifact.outputs.artifact-url }}"
+        shell: bash
 
       - name: Checkout cached (gh-pages) branch into subdirectory
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}
@@ -57,10 +88,10 @@ jobs:
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         run: |
           mkdir -p cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
-          wget --no-http-keep-alive -O cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/ast-diff.zip ${{ steps.run_rm_exporter.outputs.artifact_url }}
+          cp ${{ github.workspace }}/exportedFromDocker/diff_results.zip cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/diff_results.zip
           cd cache//${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
-          unzip ast-diff.zip
-          rm ast-diff.zip
+          unzip diff_results.zip
+          rm diff_results.zip
 
       - name: Commit detected changes
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}

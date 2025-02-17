@@ -1,0 +1,86 @@
+name: ASTDiff Bot
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      # Step 0: Check for @diff trigger and get the URL command
+      - name: Check for @diff trigger
+        id: trigger
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const commentBody = context.payload.comment.body;
+            const url_regex = /@diff\s+(\S+)/;  // Match the next non-whitespace string after @diff
+            const owner_name_regex = /[^g]*github.com[:/]([^/]*)\/([^/#]*)/; // Match the owner and name of the repository
+            const url_match = commentBody.match(url_regex);
+            if (url_match) {
+              const url = url_match[1].trim();
+              core.setOutput('triggered', 'true');
+              core.setOutput('url', url); 
+              const repo_match = url.match(owner_name_regex);
+              if (repo_match) {
+                core.setOutput('repository_owner', match[1].trim()); 
+                core.setOutput('repository_name', match[2].trim());
+              } else {
+                core.setOutput('
+              }
+            } else {
+              core.setOutput('triggered', 'false');
+            }
+
+      # Step 1: Run the exporter
+      - name: Running the RM action exporter
+        uses: pouryafard75/refactoringminer-astdiff-exporter@v0.4
+        id: run_rm_exporter
+        with:
+          OAuthToken: ${{ secrets.OAUTHTOKEN }}
+          URL: "${{ steps.trigger.outputs.url }}"
+
+      - name: Checkout cached (gh-pages) branch into subdirectory
+        uses: actions/checkout@v4 # Clone cache branch
+        with:
+          # repository: 'tsantalis/RefactoringMiner' # Optional. Default is the current repository
+          ref: gh-pages # The cache branch to checkout
+          path: cache   # The target directory to checkout to
+
+      - name: Fetch the generated artifact
+        run: |
+          mkdir -p cache
+          wget -O cache/ast-diff.zip ${{ steps.run_rm_exporter.outputs.artifact_url }}
+          cd cache
+          unzip ast-diff.zip
+          rm ast-diff.zip
+
+      - name: Commit detected changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          cwd: cache
+          # add: '.' # Optional. Default is '.'
+          author_name: "Victor Guerra Veloso"
+          author_email: "victorgvbh@gmail.com"
+          default_author: user_info
+          new_branch: gh-pages
+          message: "Github actions updated anime season data"
+          push: "origin main --set-upstream --force"
+
+      - name: Reply
+        if: ${{ steps.trigger.outputs.triggered == 'true' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.trigger.outputs.url }}';
+            const artifact_url = '${{ steps.run_rm_exporter.outputs.artifact_url }}'; // Add artifact_url output
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `👋 You triggered the bot with the URL: \`${url}\`. You can download it here: [Download Artifact](${artifact_url}).`
+            })

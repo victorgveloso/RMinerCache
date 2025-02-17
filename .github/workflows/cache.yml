@@ -27,8 +27,8 @@ jobs:
               core.setOutput('url', url); 
               const repo_match = url.match(owner_name_regex);
               if (repo_match) {
-                core.setOutput('repository_owner', match[1].trim()); 
-                core.setOutput('repository_name', match[2].trim());
+                core.setOutput('owner', match[1].trim()); 
+                core.setOutput('name', match[2].trim());
               } else {
                 core.setOutput('
               }
@@ -53,16 +53,16 @@ jobs:
 
       - name: Fetch the generated artifact
         run: |
-          mkdir -p cache
-          wget -O cache/ast-diff.zip ${{ steps.run_rm_exporter.outputs.artifact_url }}
-          cd cache
+          mkdir -p cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
+          wget -O cache/${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/ast-diff.zip ${{ steps.run_rm_exporter.outputs.artifact_url }}
+          cd cache//${{ steps.run_rm_exporter.outputs.owner }}/${{ steps.run_rm_exporter.outputs.name }}/
           unzip ast-diff.zip
           rm ast-diff.zip
 
       - name: Commit detected changes
         uses: EndBug/add-and-commit@v9
         with:
-          cwd: cache
+          cwd: /cache
           # add: '.' # Optional. Default is '.'
           author_name: "Victor Guerra Veloso"
           author_email: "victorgvbh@gmail.com"

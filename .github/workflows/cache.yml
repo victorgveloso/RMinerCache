@@ -18,7 +18,7 @@ jobs:
           script: |
             const commentBody = context.payload.comment.body;
             const url_regex = /@diff\s+(\S+)/;  // Match the next non-whitespace string after @diff
-            const owner_name_regex = /[^g]*github.com[:/]([^/]*)\/([^/#]*)/; // Match the owner and name of the repository
+            const owner_name_regex = /[^g]*github.com[:/]([^/]*)\/([^/]*)/commit/([^/#]*); // Match the owner and name of the repository
             const url_match = commentBody.match(url_regex);
             if (url_match) {
               const url = url_match[1].trim();
@@ -29,6 +29,7 @@ jobs:
                 core.setOutput('repo_match', 'true');
                 core.setOutput('owner', repo_match[1].trim()); 
                 core.setOutput('name', repo_match[2].trim());
+                core.setOutput('commit', repo_match[3].trim());
               } else {
                 core.setOutput('repo_match', 'false');
               }
@@ -79,10 +80,10 @@ jobs:
       - name: Fetch the generated artifact
         if: ${{ steps.trigger.outputs.repo_match == 'true' }}
         run: |
-          echo "cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/"
-          mkdir -p cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/
-          cp exportedFromDocker/diff_results.zip cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/diff_results.zip
-          cd cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/
+          echo "cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/${{ steps.trigger.outputs.commit }}/"
+          mkdir -p cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/${{ steps.trigger.outputs.commit }}/
+          cp exportedFromDocker/diff_results.zip cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/${{ steps.trigger.outputs.commit }}/diff_results.zip
+          cd cache/${{ steps.trigger.outputs.owner }}/${{ steps.trigger.outputs.name }}/${{ steps.trigger.outputs.commit }}/
           unzip diff_results.zip
           rm diff_results.zip
           rm -rf json
